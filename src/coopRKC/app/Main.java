@@ -1,7 +1,6 @@
-/** MAIN DEL PROTOTIPO EN JAVA. (Ejercicio Integrador. EA2. PROGRAMACION FUNCIONAL*/
+/** MAIN DEL PROTOTIPO EN JAVA. Ejercicio Integrador. EA2. PROGRAMACION FUNCIONAL */
 package coopRKC.app;
 import java.util.*;
-
 import coopRKC.modelo.*;
 import coopRKC.transacciones.*;
 
@@ -92,9 +91,7 @@ public class Main {
 
 // ======================= MÉTODOS FUNCIONALES =======================
 
-    /**
-     * Registra un nuevo socio en la cooperativa.
-     */
+    /**Registra un nuevo socio en la cooperativa. */
     private static void registrarSocio(Scanner scanner, Cooperativa cooperativa) {
         String nombre = leerTextoObligatorio(scanner, "Nombre del socio: ").toLowerCase();
         String cedula = leerCedulaValida(scanner);
@@ -102,9 +99,7 @@ public class Main {
         System.out.println(" Socio registrado exitosamente.");
     }
 
-    /**
-     * Abre una cuenta de ahorro para un socio existente.
-     */
+    /**Abre una cuenta de ahorro para un socio existente. */
     private static void abrirCuentaAhorro(Scanner scanner, Cooperativa cooperativa) {
         String cedula = leerCedulaValida(scanner);
         try {
@@ -126,8 +121,7 @@ public class Main {
         }
     }
 
-    /**
-     * Realiza un depósito en una cuenta existente.
+    /**Realiza un depósito en una cuenta existente.
      (ABSTRACCION). Oculta la Complejidad interna y muestra solo lo esencial para su uso, en este caso la Interfaz (menu)*/
     private static void realizarDeposito(Scanner scanner, Cooperativa cooperativa) {
         String cedula = leerCedulaValida(scanner);
