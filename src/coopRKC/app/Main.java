@@ -89,3 +89,195 @@ public class Main {
             }
         }
     }
+
+// ======================= MÉTODOS FUNCIONALES =======================
+
+    /**
+     * Registra un nuevo socio en la cooperativa.
+     */
+    private static void registrarSocio(Scanner scanner, Cooperativa cooperativa) {
+        String nombre = leerTextoObligatorio(scanner, "Nombre del socio: ").toLowerCase();
+        String cedula = leerCedulaValida(scanner);
+        cooperativa.registrarSocio(nombre, cedula);
+        System.out.println(" Socio registrado exitosamente.");
+    }
+
+    /**
+     * Abre una cuenta de ahorro para un socio existente.
+     */
+    private static void abrirCuentaAhorro(Scanner scanner, Cooperativa cooperativa) {
+        String cedula = leerCedulaValida(scanner);
+        try {
+            Socio socio = cooperativa.buscarSocioPorCedula(cedula);
+            String numero = leerTextoObligatorio(scanner, "Número de cuenta: ").toLowerCase();
+
+            // Validación de unicidad
+            if (cooperativa.cuentaExiste(numero)) {
+                System.out.println("Error. Ya existe una cuenta con ese número. Intente con otro.");
+                return;
+            }
+
+            double interes = leerNumero(scanner, "Interés anual (%): ", 0.01);
+            Cuenta cuenta = new CuentaAhorros(numero, interes / 100);
+            socio.agregarCuenta(cuenta);
+            System.out.println("  Cuenta de ahorro creada exitosamente.");
+        } catch (Exception e) {
+            System.out.println("-X- Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Realiza un depósito en una cuenta existente.
+     (ABSTRACCION). Oculta la Complejidad interna y muestra solo lo esencial para su uso, en este caso la Interfaz (menu)*/
+    private static void realizarDeposito(Scanner scanner, Cooperativa cooperativa) {
+        String cedula = leerCedulaValida(scanner);
+        try {
+            Socio socio = cooperativa.buscarSocioPorCedula(cedula);
+            String numero = leerTextoObligatorio(scanner, "Número de cuenta: ").toLowerCase();
+            Cuenta cuenta = socio.getCuenta(numero);
+            double monto = leerNumero(scanner, "Monto a depositar $: ", 0.01);
+            new Deposito(cuenta, monto).ejecutar(); // (ABSTRACCION) Usuario no nesecita saber los detalles ni ocmo se actualiza el saldo
+            System.out.println("  Monto depositado correctamente.");
+        } catch (Exception e) {
+            System.out.println("  Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Realiza un retiro en una cuenta existente.
+     */
+    private static void realizarRetiro(Scanner scanner, Cooperativa cooperativa) {
+        String cedula = leerCedulaValida(scanner);
+        try {
+            Socio socio = cooperativa.buscarSocioPorCedula(cedula);
+            String numero = leerTextoObligatorio(scanner, "Número de cuenta: ").toLowerCase();
+            Cuenta cuenta = socio.getCuenta(numero);
+            double monto = leerNumero(scanner, "Monto a retirar $: ", 0.01);
+            new Retiro(cuenta, monto).ejecutar();
+        } catch (Exception e) {
+            System.out.println("  Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Aplica interés a cuentas de ahorro según opción elegida por el usuario.
+     */
+    private static void aplicarInteres(Scanner scanner, Cooperativa cooperativa) {
+        System.out.println("\nAplicacion de interés a cuentas");
+        System.out.println(" 1. *Aplicar a todas las cuentas de ahorro");
+        System.out.println(" 2. *Aplicar a cada cuenta individualmente");
+        System.out.println(" 3. *Aplicar a una sola cuenta específica");
+
+        int opcion = leerOpcion(scanner);
+        double porcentaje = leerNumero(scanner, "Ingrese el porcentaje de interés (%): ", 0.01);
+        double tasa = porcentaje / 100;
+
+        switch (opcion) {
+            case 1 -> {
+                int total = cooperativa.aplicarInteresATodas(tasa);
+                System.out.println("Interés aplicado exitosamente a " + total + " cuenta(s) de ahorro.");
+            }
+            case 2 -> {
+                cooperativa.aplicarInteresUnaPorUna(tasa);
+            }
+            case 3 -> {
+                String numero = leerTextoObligatorio(scanner, "Número de cuenta a actualizar: ").toLowerCase();
+                boolean aplicado = cooperativa.aplicarInteresCuentaEspecifica(numero, tasa);
+                if (aplicado) {
+                    System.out.println("Interés aplicado correctamente a la cuenta:"+ numero);
+                } else {
+                    System.out.println("Error. No se encontró la cuenta o no es de tipo ahorro.");
+                }
+            }
+            default -> System.out.println(" Opción inválida. No se aplicó ningún interés.");
+        }
+    }
+
+    /**
+     * Muestra las cuentas con saldo mayor a un valor, incluyendo nombre del socio.
+     */
+    private static void mostrarCuentasConSaldoMayor(Scanner scanner, Cooperativa cooperativa) {
+        double valor = leerNumero(scanner, "Ingrese el valor mínimo de saldo: COP$ ", 0);
+        System.out.println("\n CUENTAS con SALDO MAYOR a $ " + valor + ":");
+        cooperativa.mostrarCuentasConSaldoMayor(valor);
+    }
+
+    /**
+     * Lista los nombres de todos los socios y sus cuentas.
+     */
+    private static void listarNombresSocios(Cooperativa cooperativa) {
+        cooperativa.listarNombresSocios();
+    }
+
+    /**
+     * Calcula el total de dinero acumulado en la cooperativa.
+     */
+    private static void calcularTotalDinero(Cooperativa cooperativa) {
+        double total = cooperativa.calcularTotalDinero();
+        System.out.printf("\nTOTAL EN LA COPPERATIVA: $%.2f%n", total);
+    }
+
+// ======================= MÉTODOS DE VALIDACIÓN =======================
+
+    /**
+     * Solicita un texto obligatorio al usuario.
+     *
+     * @param scanner Scanner para entrada
+     * @param mensaje Mensaje a mostrar
+     * @return Texto ingresado, no vacío
+     */
+    private static String leerTextoObligatorio(Scanner scanner, String mensaje) {
+        String entrada;
+        do {
+            System.out.print(mensaje);
+            entrada = scanner.nextLine().trim();
+            if (entrada.isEmpty()) {
+                System.out.println("  Este campo no puede estar vacío.");
+            }
+        } while (entrada.isEmpty());
+        return entrada;
+    }
+
+    /**
+     * Solicita un número mayor o igual al mínimo especificado.
+     *
+     * @param scanner Scanner para entrada
+     * @param mensaje Mensaje a mostrar
+     * @param minimo Valor mínimo permitido
+     * @return Número válido ingresado
+     */
+    private static double leerNumero(Scanner scanner, String mensaje, double minimo) {
+        while (true) {
+            System.out.print(mensaje);
+            try {
+                double valor = Double.parseDouble(scanner.nextLine());
+                if (valor < minimo) {
+                    System.out.println("  El número debe ser mayor a " + minimo);
+                } else {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("  Entrada inválida. Ingrese un número válido.");
+            }
+        }
+    }
+
+    /**
+     * Solicita una cédula válida (entre 6 y 10 dígitos numéricos).
+     *
+     * @param scanner Scanner para entrada
+     * @return Cédula válida
+     */
+    private static String leerCedulaValida(Scanner scanner) {
+        String cedula;
+        do {
+            System.out.print("Cédula del socio: ");
+            cedula = scanner.nextLine().trim();
+            if (!cedula.matches("\\d{6,10}")) {
+                System.out.println(" Cédula inválida. Debe tener entre 6 y 10 dígitos numéricos.");
+                cedula = "";
+            }
+        } while (cedula.isEmpty());
+        return cedula;
+    }
+}
